@@ -1,0 +1,8 @@
+{
+  "name": "KaushalSetu AI — PM Internship & AICTE Recommender",
+  "description": "AI internship recommendation engine and PM Internship Scheme readiness report powered by live AICTE portal scraping and sentence-transformer embeddings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
