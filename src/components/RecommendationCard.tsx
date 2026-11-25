@@ -9,15 +9,7 @@ interface RecommendationCardProps {
 
 export function RecommendationCard({ recommendation, rank }: RecommendationCardProps) {
   const [expanded, setExpanded] = React.useState(false);
-  const { internship, matchScore, matchedSkills, missingSkills, matchReasons } =
-    recommendation;
-
-  const scoreTone =
-    matchScore >= 75
-      ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
-      : matchScore >= 55
-        ? 'text-blue-800 bg-blue-50 border-blue-200'
-        : 'text-amber-700 bg-amber-50 border-amber-200';
+  const { internship, matchedSkills, missingSkills, matchReasons } = recommendation;
 
   return (
     <article className="bg-white border border-slate-200 rounded-lg p-5 transition-colors hover:border-slate-300">
@@ -75,16 +67,7 @@ export function RecommendationCard({ recommendation, rank }: RecommendationCardP
           )}
         </div>
 
-        <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-          <div className="text-left sm:text-right">
-            <div
-              className={`inline-flex items-baseline gap-1.5 px-2.5 py-1 rounded-md border font-mono tabular-nums ${scoreTone}`}
-            >
-              <span className="text-lg font-bold">{matchScore}%</span>
-              <span className="text-[11px] font-medium">Match</span>
-            </div>
-          </div>
-
+        <div className="flex sm:flex-col items-center sm:items-end justify-end gap-2.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
           <div className="flex items-center gap-2">
             <button
               type="button"

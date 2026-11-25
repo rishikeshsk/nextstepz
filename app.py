@@ -370,7 +370,6 @@ def build_resume_readiness_report(
         )
 
     lead_title = top8[0]["internship"]["title"] if top8 else "AICTE internships"
-    lead_score = top8[0]["matchScore"] if top8 else 0
     gap_focus = (
         " & ".join(skill for skill, _ in top_missing_skills[:2])
         if top_missing_skills
@@ -378,7 +377,7 @@ def build_resume_readiness_report(
     )
     summary = (
         f'Your resume scores {readiness_score}/100 ({readiness_tier}) against live AICTE listings, '
-        f'led by "{lead_title}" ({lead_score}% match). Focus on closing {gap_focus} gaps while '
+        f'led by "{lead_title}". Focus on closing {gap_focus} gaps while '
         "preserving your verified technical strengths."
     )
 
@@ -1036,7 +1035,7 @@ def _build_pure_python_pdf(report: dict[str, Any]) -> bytes:
             role_line = (
                 f"{idx}. {sanitize_pdf_text(role['title'])} "
                 f"({sanitize_pdf_text(role['organization'])}) - "
-                f"{role['matchScore']}% Match | {sanitize_pdf_text(role['mode'])} | "
+                f"{sanitize_pdf_text(role['mode'])} | "
                 f"{sanitize_pdf_text(role['stipendDisplay'])}"
             )
             wrapped = textwrap.wrap(role_line, width=88)
@@ -1207,7 +1206,7 @@ def generate_readiness_pdf(report: dict[str, Any]) -> bytes:
                 role_text = (
                     f"{idx}. {sanitize_pdf_text(role['title'])} "
                     f"({sanitize_pdf_text(role['organization'])}) - "
-                    f"{role['matchScore']}% Match | {sanitize_pdf_text(role['mode'])} | "
+                    f"{sanitize_pdf_text(role['mode'])} | "
                     f"{sanitize_pdf_text(role['stipendDisplay'])}"
                 )
                 pdf.multi_cell(0, 15, role_text)
@@ -1547,7 +1546,6 @@ def main() -> None:
                             f"{item['stipendDisplay']} · {item['daysLeft']}d left"
                         )
                     with top_b:
-                        st.markdown(f"**{rec['matchScore']}% Match**")
                         if item["portalUrl"]:
                             st.link_button("Apply", item["portalUrl"], use_container_width=True)
 

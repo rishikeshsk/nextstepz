@@ -112,7 +112,7 @@ export function downloadReadinessPdf(report: ResumeReadinessReport): void {
     doc.setFontSize(10);
     for (let i = 0; i < report.topTargetRoles.length; i++) {
       const role = report.topTargetRoles[i];
-      const line = `${i + 1}. ${sanitizePdfText(role.title)} (${sanitizePdfText(role.organization)}) - ${role.matchScore}% Match | ${sanitizePdfText(role.mode)} | ${sanitizePdfText(role.stipendDisplay)}`;
+      const line = `${i + 1}. ${sanitizePdfText(role.title)} (${sanitizePdfText(role.organization)}) - ${sanitizePdfText(role.mode)} | ${sanitizePdfText(role.stipendDisplay)}`;
       const wrapped = doc.splitTextToSize(line, maxWidth);
       ensureSpace(wrapped.length * 14 + 6);
       doc.text(wrapped, margin, y);

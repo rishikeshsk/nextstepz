@@ -411,9 +411,7 @@ export function scoreInternships(params: {
       );
     } else {
       const targetContext = profile.branch?.trim() || 'your resume';
-      matchReasons.push(
-        `Semantic alignment (${Math.round(semanticSimilarity * 100)}%) with ${targetContext}`,
-      );
+      matchReasons.push(`Relevant domain alignment with ${targetContext}`);
     }
 
     if (savedSkillAffinity > 0.2 && !savedSet.has(item.id)) {
@@ -823,7 +821,7 @@ export function buildResumeReadinessReport(params: {
   }
 
   const topTitle = top8[0]?.internship.title ?? 'AICTE internships';
-  const summary = `Your resume scores ${readinessScore}/100 (${readinessTier}) against live AICTE listings, led by "${topTitle}" (${top8[0]?.matchScore ?? 0}% match). Focus on closing ${topMissingSkills.length > 0 ? topMissingSkills.map(([s]) => s).slice(0, 2).join(' & ') : 'role-specific'} gaps while preserving your verified technical strengths.`;
+  const summary = `Your resume scores ${readinessScore}/100 (${readinessTier}) against live AICTE listings, led by "${topTitle}". Focus on closing ${topMissingSkills.length > 0 ? topMissingSkills.map(([s]) => s).slice(0, 2).join(' & ') : 'role-specific'} gaps while preserving your verified technical strengths.`;
 
   return {
     generatedAt: new Date().toISOString(),
