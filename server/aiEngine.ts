@@ -1,11 +1,14 @@
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import type {
   CandidateProfile,
+  ExpertiseQuestion,
+  ExpertiseQuiz,
   InteractionHistory,
   Internship,
   ReadinessReport,
   ScoredRecommendation,
 } from '../src/types/internship';
+import { detectExpertiseArea } from '../src/utils/expertiseTest';
 import {
   buildProfileDocument,
   buildResumeDocument,
@@ -479,4 +482,101 @@ export async function parseResumeWithGemini(params: {
     experienceSummary: parsed.experienceSummary?.trim() || '',
     extractedText: parsed.extractedText?.trim() || textInput,
   };
+}
+
+export async function generateExpertiseQuizWithGemini(params: {
+  resumeText: string;
+  matchedSkills?: string[];
+}): Promise<ExpertiseQuiz> {
+  const ai = getGeminiClient();
+  const { area, detectedSkills } = detectExpertiseArea(
+    params.resumeText,
+    params.matchedSkills ?? [],
+  );
+
+  const prompt = [
+    `Create a practical 5-question technical evaluation test tailored strictly to this candidate's resume and detected area of expertise: "${area}".`,
+    detectedSkills.length > 0 ? `Detected skills: ${detectedSkills.join(', ')}` : '',
+    `Candidate Resume:\n${params.resumeText.trim().slice(0, 2200)}`,
+    'Each question must have exactly 4 distinct options, a valid correctIndex (0-3), a concise topic label (2-4 words), and a 1-sentence technical explanation.',
+  ]
+    .filter(Boolean)
+    .join('\n\n');
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20_000);
+  try {
+    const response = await ai.models.generateContent({
+      model: REPORT_MODEL,
+      contents: prompt,
+      config: {
+        abortSignal: controller.signal,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+        systemInstruction:
+          'You are a technical interviewer evaluating AICTE internship applicants. Ask applied, scenario-based conceptual questions rather than trivia.',
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            expertiseArea: { type: Type.STRING },
+            questions: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  topic: { type: Type.STRING },
+                  prompt: { type: Type.STRING },
+                  options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  correctIndex: { type: Type.INTEGER },
+                  explanation: { type: Type.STRING },
+                },
+                required: ['topic', 'prompt', 'options', 'correctIndex', 'explanation'],
+              },
+            },
+          },
+          required: ['expertiseArea', 'questions'],
+        },
+      },
+    });
+
+    const parsed = JSON.parse((response.text ?? '{}').trim()) as {
+      expertiseArea?: string;
+      questions?: Array<Partial<ExpertiseQuestion>>;
+    };
+
+    const validQuestions: ExpertiseQuestion[] = (parsed.questions ?? [])
+      .filter(
+        (q): q is Omit<ExpertiseQuestion, 'id'> =>
+          Boolean(q.prompt?.trim()) &&
+          Boolean(q.topic?.trim()) &&
+          Boolean(q.explanation?.trim()) &&
+          Array.isArray(q.options) &&
+          q.options.length === 4 &&
+          typeof q.correctIndex === 'number' &&
+          q.correctIndex >= 0 &&
+          q.correctIndex <= 3,
+      )
+      .slice(0, 5)
+      .map((q, idx) => ({
+        id: `ai-exp-${idx + 1}`,
+        topic: q.topic.trim(),
+        prompt: q.prompt.trim(),
+        options: q.options.map((o) => String(o).trim()),
+        correctIndex: q.correctIndex,
+        explanation: q.explanation.trim(),
+      }));
+
+    if (validQuestions.length < 5) {
+      throw new Error('Incomplete AI quiz payload generated.');
+    }
+
+    return {
+      expertiseArea: parsed.expertiseArea?.trim() || area,
+      detectedSkills,
+      source: 'gemini',
+      questions: validQuestions,
+    };
+  } finally {
+    clearTimeout(timer);
+  }
 }

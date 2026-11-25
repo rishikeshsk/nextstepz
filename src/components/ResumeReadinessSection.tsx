@@ -78,6 +78,20 @@ export function ResumeReadinessSection({ report }: ResumeReadinessSectionProps) 
           </ul>
         </div>
       </div>
+
+      {report.expertiseResult && (
+        <div className="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+          <span>
+            Expertise Test ({report.expertiseResult.expertiseArea}):{' '}
+            <strong className="font-mono text-slate-900 tabular-nums">
+              {report.expertiseResult.correctCount}/{report.expertiseResult.totalCount} (
+              {report.expertiseResult.scorePercent}%)
+            </strong>{' '}
+            — {report.expertiseResult.proficiencyBand}
+          </span>
+          <span className="text-slate-500">Included in PDF export</span>
+        </div>
+      )}
     </section>
   );
 }

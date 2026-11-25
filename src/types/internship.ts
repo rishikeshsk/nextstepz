@@ -132,6 +132,46 @@ export interface ScrapeMeta {
   flagshipMissions: string[];
 }
 
+export interface ExpertiseQuestion {
+  id: string;
+  topic: string;
+  prompt: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface ExpertiseQuiz {
+  expertiseArea: string;
+  detectedSkills: string[];
+  source: 'gemini' | 'curated';
+  questions: ExpertiseQuestion[];
+}
+
+export interface ExpertiseQuestionOutcome {
+  id: string;
+  topic: string;
+  prompt: string;
+  selectedIndex: number;
+  correctIndex: number;
+  isCorrect: boolean;
+  selectedOption: string;
+  correctOption: string;
+  explanation: string;
+}
+
+export interface ExpertiseTestResult {
+  completedAt: string;
+  expertiseArea: string;
+  correctCount: number;
+  totalCount: number;
+  scorePercent: number;
+  proficiencyBand: 'Strong Mastery' | 'Competent Foundation' | 'Needs Focused Review';
+  strongTopics: string[];
+  weakTopics: string[];
+  outcomes: ExpertiseQuestionOutcome[];
+}
+
 export interface ResumeReadinessReport {
   generatedAt: string;
   readinessScore: number;
@@ -146,5 +186,6 @@ export interface ResumeReadinessReport {
     mode: string;
     stipendDisplay: string;
   }[];
+  expertiseResult?: ExpertiseTestResult;
 }
 

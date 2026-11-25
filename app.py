@@ -402,6 +402,598 @@ def build_resume_readiness_report(
     }
 
 
+EXPERTISE_BANK: list[dict[str, Any]] = [
+    {
+        "area": "Cloud & DevOps",
+        "keywords": [
+            "aws", "azure", "gcp", "docker", "kubernetes", "terraform", "devops",
+            "ci/cd", "jenkins", "linux", "ec2", "s3", "cloud", "ansible", "nginx",
+        ],
+        "questions": [
+            {
+                "id": "cloud-1",
+                "topic": "Containers & Docker",
+                "prompt": "When writing a production Dockerfile for a Python or Node service, what is the primary benefit of using a multi-stage build?",
+                "options": [
+                    "It lets a single container run two separate kernels simultaneously.",
+                    "It leaves build compilers and dev dependencies out of the final runtime image, shrinking size and attack surface.",
+                    "It automatically deploys the image across multiple AWS availability zones.",
+                    "It disables layer caching so every rebuild installs packages from scratch.",
+                ],
+                "correctIndex": 1,
+                "explanation": "Multi-stage builds copy only compiled artifacts or runtime packages into a slim final image, reducing image size and vulnerabilities.",
+            },
+            {
+                "id": "cloud-2",
+                "topic": "Kubernetes Architecture",
+                "prompt": "In Kubernetes, what resource ensures a stable DNS name and load-balanced endpoint even as individual Pods restart with new IP addresses?",
+                "options": ["A ConfigMap", "A Service", "A PersistentVolumeClaim", "A DaemonSet"],
+                "correctIndex": 1,
+                "explanation": "A Kubernetes Service maps a stable virtual IP and DNS name to dynamic Pods matched by label selectors.",
+            },
+            {
+                "id": "cloud-3",
+                "topic": "AWS Security & IAM",
+                "prompt": "An application running on an AWS EC2 instance needs read-only access to an S3 bucket. What is the recommended security practice?",
+                "options": [
+                    "Store root account access keys inside a .env file baked into the AMI.",
+                    "Attach an IAM Role with a least-privilege S3 read policy directly to the EC2 instance.",
+                    "Make the S3 bucket public and restrict access by checking the User-Agent header.",
+                    "Embed temporary STS tokens inside the frontend JavaScript bundle.",
+                ],
+                "correctIndex": 1,
+                "explanation": "IAM instance roles provide short-lived, automatically rotated credentials without storing static keys on disk.",
+            },
+            {
+                "id": "cloud-4",
+                "topic": "CI/CD Pipelines",
+                "prompt": "Why should automated linting, unit tests, and vulnerability scans run before the artifact build/push step in a CI/CD pipeline?",
+                "options": [
+                    "To fail fast on broken code before spending compute and registry storage on invalid builds.",
+                    "Because Docker cannot build images unless a unit-test coverage XML file is inside /etc.",
+                    "To bypass branch protection rules on pull requests.",
+                    "Because production load balancers execute unit tests on incoming HTTP traffic.",
+                ],
+                "correctIndex": 0,
+                "explanation": "Running fast verification stages first prevents broken commits from producing deployable artifacts.",
+            },
+            {
+                "id": "cloud-5",
+                "topic": "Linux & Observability",
+                "prompt": "A containerized service starts returning HTTP 502 behind Nginx after high traffic. Which check best identifies whether the container was OOM-killed?",
+                "options": [
+                    "Checking `ping -c 1 localhost` inside the host shell.",
+                    "Inspecting container exit status / `dmesg` or `kubectl describe pod` for Exit Code 137 (OOMKilled).",
+                    "Converting the Nginx config from tabs to spaces.",
+                    "Clearing the browser DNS cache on a client laptop.",
+                ],
+                "correctIndex": 1,
+                "explanation": "Exit Code 137 (SIGKILL) and kernel/pod OOMKilled events directly confirm memory limit exhaustion.",
+            },
+        ],
+    },
+    {
+        "area": "Data Science & AI/ML",
+        "keywords": [
+            "machine learning", "deep learning", "data science", "data analysis", "nlp",
+            "tensorflow", "pytorch", "scikit-learn", "pandas", "numpy", "matplotlib",
+            "power bi", "tableau", "llm", "rag", "ai", "ml", "computer vision",
+        ],
+        "questions": [
+            {
+                "id": "ds-1",
+                "topic": "Preventing Data Leakage",
+                "prompt": "When building a tabular ML pipeline with missing-value imputation and StandardScaler, when should `.fit()` be called?",
+                "options": [
+                    "On the combined train + test dataset before splitting so both share identical statistics.",
+                    "Only on the training split inside cross-validation, then `.transform()` on validation/test splits.",
+                    "Only on the test set so accuracy on unseen samples is maximized.",
+                    "After exporting the trained model to ONNX format.",
+                ],
+                "correctIndex": 1,
+                "explanation": "Fitting scalers or imputers on test data leaks distribution information and produces overly optimistic validation scores.",
+            },
+            {
+                "id": "ds-2",
+                "topic": "Imbalanced Classification Metrics",
+                "prompt": "You are predicting fraudulent transactions where only 1% of rows are positive. Why is raw Accuracy misleading here?",
+                "options": [
+                    "A trivial classifier predicting 'not fraud' for every row still achieves 99% accuracy while missing all fraud.",
+                    "Accuracy cannot be computed for binary classification targets.",
+                    "Accuracy penalizes false positives twice as heavily as false negatives.",
+                    "Gradient descent diverges whenever accuracy exceeds 90%.",
+                ],
+                "correctIndex": 0,
+                "explanation": "On skewed classes, Precision-Recall AUC, F1-score, and Recall on the minority class reflect actual detection quality.",
+            },
+            {
+                "id": "ds-3",
+                "topic": "Embeddings & Cosine Similarity",
+                "prompt": "Why is cosine similarity widely preferred over raw Euclidean distance when comparing high-dimensional text embeddings?",
+                "options": [
+                    "Cosine similarity measures the angle (directional alignment) between vectors rather than sensitivity to vector magnitude.",
+                    "Cosine similarity guarantees zero false positives without requiring vector normalization.",
+                    "Euclidean distance only works for 2D coordinates and throws errors above 3 dimensions.",
+                    "Cosine similarity runs in O(1) time regardless of vocabulary size.",
+                ],
+                "correctIndex": 0,
+                "explanation": "Directional similarity captures semantic overlap even when document lengths or embedding norms differ.",
+            },
+            {
+                "id": "ds-4",
+                "topic": "Regularization & Overfitting",
+                "prompt": "A model reaches 99% training accuracy but drops to 64% validation accuracy. Which adjustment directly addresses this?",
+                "options": [
+                    "Increase model depth and train for twice as many epochs without early stopping.",
+                    "Apply stronger regularization (L2/dropout), simplify features, or gather more diverse training data.",
+                    "Remove the validation split and evaluate strictly on the training set.",
+                    "Replace ReLU activations with identity linear functions across every layer.",
+                ],
+                "correctIndex": 1,
+                "explanation": "A wide train-validation gap signals overfitting; regularization, pruning capacity, and data augmentation improve generalization.",
+            },
+            {
+                "id": "ds-5",
+                "topic": "Pandas & Data Cleaning",
+                "prompt": "In pandas, what is the cleanest way to prevent silent `SettingWithCopyWarning` bugs when filtering a DataFrame and mutating a column?",
+                "options": [
+                    "Use chained indexing like `df[df['x'] > 0]['y'] = 1`.",
+                    "Use explicit `.loc[mask, 'y'] = 1` or call `.copy()` before modifying the filtered slice.",
+                    "Convert the entire DataFrame to Python lists on every row update.",
+                    "Suppress all Python warnings globally.",
+                ],
+                "correctIndex": 1,
+                "explanation": "`.loc` or an explicit `.copy()` guarantees mutations apply deterministically rather than to an ambiguous view.",
+            },
+        ],
+    },
+    {
+        "area": "Full-Stack Web Engineering",
+        "keywords": [
+            "react", "next.js", "nextjs", "javascript", "typescript", "node.js", "nodejs",
+            "express", "html", "css", "tailwind", "frontend", "backend", "full stack",
+            "full-stack", "rest api", "graphql", "mongodb", "redux",
+        ],
+        "questions": [
+            {
+                "id": "web-1",
+                "topic": "React Rendering & Keys",
+                "prompt": "Why should you avoid using array indices as the `key` prop in a React list where items can be reordered, inserted, or deleted?",
+                "options": [
+                    "Array indices cause syntax errors in strict TypeScript.",
+                    "React reuses component state and DOM nodes by key, causing stale inputs or visual glitches when positions shift.",
+                    "Using unique IDs disables virtual DOM diffing.",
+                    "Browser CSS grid layouts ignore elements with string keys.",
+                ],
+                "correctIndex": 1,
+                "explanation": "Stable unique IDs let React track each item identity across insertions, deletions, and sorting.",
+            },
+            {
+                "id": "web-2",
+                "topic": "REST API Semantics",
+                "prompt": "Which HTTP status code should an Express/Node endpoint return when a client submits malformed JSON or missing required fields?",
+                "options": ["200 OK", "302 Found", "400 Bad Request", "503 Service Unavailable"],
+                "correctIndex": 2,
+                "explanation": "400 Bad Request signals a client input validation error rather than a server outage.",
+            },
+            {
+                "id": "web-3",
+                "topic": "Async Race Conditions",
+                "prompt": "A search box fires an API fetch on every keystroke. How do you ensure a slower older response never overwrites a newer query result?",
+                "options": [
+                    "Store responses inside `localStorage` first.",
+                    "Pass an `AbortController.signal` to `fetch` and abort the previous in-flight request in effect cleanup.",
+                    "Use `setTimeout(..., 0)` inside the JSON parser.",
+                    "Replace HTTPS with HTTP/1.0.",
+                ],
+                "correctIndex": 1,
+                "explanation": "Aborting stale requests eliminates out-of-order state overwrites.",
+            },
+            {
+                "id": "web-4",
+                "topic": "Web Security (XSS)",
+                "prompt": "Why is passing untrusted user input directly into `dangerouslySetInnerHTML` in React dangerous?",
+                "options": [
+                    "It triggers Cross-Site Scripting (XSS), allowing injected scripts or event handlers to execute in the browser.",
+                    "It strips all CSS classes from sibling components.",
+                    "It converts UTF-8 characters into binary.",
+                    "It blocks CORS preflight requests.",
+                ],
+                "correctIndex": 0,
+                "explanation": "Standard JSX interpolation escapes text safely, whereas raw HTML injection allows arbitrary script execution unless sanitized.",
+            },
+            {
+                "id": "web-5",
+                "topic": "Authentication & Secrets",
+                "prompt": "Where should third-party API keys and database connection secrets be stored in a full-stack Vite + Express application?",
+                "options": [
+                    "Prefixed with `VITE_` in client source files so React can read them directly.",
+                    "In server-side environment variables (`process.env`) accessed exclusively by backend `/api/*` routes.",
+                    "Inside a public `secrets.json` file in `/public`.",
+                    "Hardcoded in `App.tsx` inside a `useMemo` hook.",
+                ],
+                "correctIndex": 1,
+                "explanation": "Frontend environment variables are bundled into browser code; private secrets must remain server-side.",
+            },
+        ],
+    },
+    {
+        "area": "Cybersecurity & Networking",
+        "keywords": [
+            "cybersecurity", "cyber security", "siem", "wazuh", "nmap", "wireshark",
+            "burp suite", "owasp", "penetration testing", "soc", "firewall", "networking",
+            "tcp/ip", "vulnerability", "cryptography", "infosec", "splunk",
+        ],
+        "questions": [
+            {
+                "id": "sec-1",
+                "topic": "Injection Defense",
+                "prompt": "What is the most effective primary defense against SQL Injection in a backend web service?",
+                "options": [
+                    "Hiding database table names on the frontend.",
+                    "Using parameterized queries / prepared statements that separate SQL structure from user data.",
+                    "Base64-encoding user inputs before concatenating them into the SQL string.",
+                    "Running the web server on a non-standard port.",
+                ],
+                "correctIndex": 1,
+                "explanation": "Parameterized queries treat user inputs strictly as data values, never as executable SQL syntax.",
+            },
+            {
+                "id": "sec-2",
+                "topic": "SIEM & Log Triage",
+                "prompt": "A SIEM alert shows 400 failed SSH logins from a single external IP followed immediately by one successful login. What should a SOC analyst do first?",
+                "options": [
+                    "Ignore the alert because only one login succeeded.",
+                    "Verify whether the login is legitimate, isolate/block the source if unauthorized, revoke credentials, and inspect post-login process/audit logs.",
+                    "Delete `/var/log/auth.log` to stop further alerts.",
+                    "Restart DNS resolution on the client browser.",
+                ],
+                "correctIndex": 1,
+                "explanation": "A brute-force pattern ending in success indicates likely compromise requiring containment, credential rotation, and host investigation.",
+            },
+            {
+                "id": "sec-3",
+                "topic": "TLS & Transport Security",
+                "prompt": "During an HTTPS TLS handshake, what does verifying the server certificate chain primarily protect the client against?",
+                "options": [
+                    "Hard drive sector corruption on the client device.",
+                    "Man-in-the-middle impersonation by confirming the server public key belongs to the trusted domain.",
+                    "Excessive RAM usage inside the client browser.",
+                    "Cross-site request forgery in local cookies.",
+                ],
+                "correctIndex": 1,
+                "explanation": "Certificate validation binds the domain identity to a cryptographic key signed by a trusted Certificate Authority.",
+            },
+            {
+                "id": "sec-4",
+                "topic": "Access Control (OWASP)",
+                "prompt": "An API endpoint `/api/invoices/1042` returns another customer's invoice simply by changing the numeric ID in the URL. Which OWASP Top 10 flaw is this?",
+                "options": [
+                    "Broken Access Control (IDOR)",
+                    "Insufficient Logging & Monitoring",
+                    "Weak PRNG Seeding",
+                    "DNS Cache Poisoning",
+                ],
+                "correctIndex": 0,
+                "explanation": "Insecure Direct Object Reference (IDOR) occurs when the server fails to verify ownership for the requested object ID.",
+            },
+            {
+                "id": "sec-5",
+                "topic": "Network Scanning & Ports",
+                "prompt": "In Nmap, why might a host respond differently to a TCP SYN scan (`-sS`) versus a full TCP connect scan (`-sT`)?",
+                "options": [
+                    "`-sS` sends only SYN and tears down with RST before completing the 3-way handshake, making it faster and stealthier.",
+                    "`-sS` scans UDP ports exclusively while `-sT` scans ICMP.",
+                    "`-sT` decrypts TLS traffic automatically without keys.",
+                    "Both flags perform identical ICMP echo pings only.",
+                ],
+                "correctIndex": 0,
+                "explanation": "A half-open SYN scan avoids completing the full TCP connection unless elevated raw-socket privileges are unavailable.",
+            },
+        ],
+    },
+    {
+        "area": "Embedded Systems & IoT",
+        "keywords": [
+            "embedded", "iot", "arduino", "esp32", "raspberry pi", "stm32", "microcontroller",
+            "rtos", "mqtt", "uart", "spi", "i2c", "verilog", "vhdl", "vlsi", "pcb",
+        ],
+        "questions": [
+            {
+                "id": "iot-1",
+                "topic": "Serial Buses (I2C vs SPI)",
+                "prompt": "When connecting multiple sensors to a microcontroller, what is a key electrical difference between I2C and SPI?",
+                "options": [
+                    "I2C uses 2 shared open-drain lines (SDA/SCL) with device addresses, whereas SPI uses separate MOSI/MISO/SCLK lines plus a Chip Select per slave.",
+                    "SPI requires external pull-up resistors to enforce 100 kbps speed.",
+                    "I2C is always full-duplex while SPI is half-duplex only.",
+                    "SPI does not use a clock line.",
+                ],
+                "correctIndex": 0,
+                "explanation": "I2C saves pins via addressing on 2 wires; SPI achieves higher throughput using dedicated data lines and chip-select pins.",
+            },
+            {
+                "id": "iot-2",
+                "topic": "Interrupt Service Routines",
+                "prompt": "Why should you avoid calling blocking delays (`delay()`) or heavy network calls inside a microcontroller Interrupt Service Routine (ISR)?",
+                "options": [
+                    "ISRs block lower-priority interrupts and main loop execution, causing missed events or watchdog resets.",
+                    "ISRs automatically wipe EEPROM flash memory if they run longer than 1 microsecond.",
+                    "Compilers prohibit `if` statements inside ISRs.",
+                    "PWM timers reverse polarity when `delay()` is compiled.",
+                ],
+                "correctIndex": 0,
+                "explanation": "Best practice is to set a `volatile` flag or push to an RTOS queue inside the ISR and handle heavy work in the main task.",
+            },
+            {
+                "id": "iot-3",
+                "topic": "IoT Telemetry (MQTT)",
+                "prompt": "In MQTT, what does QoS Level 1 ('At least once') guarantee when publishing sensor readings over an unstable cellular/Wi-Fi link?",
+                "options": [
+                    "Messages are sent once and dropped silently if offline.",
+                    "The broker/receiver acknowledges delivery via PUBACK, retrying until received (possible duplicates if ACK is lost).",
+                    "End-to-end AES-256 encryption without TLS.",
+                    "Deterministic sub-millisecond hardware interrupts.",
+                ],
+                "correctIndex": 1,
+                "explanation": "QoS 1 guarantees delivery at least once using PUBACK acknowledgments.",
+            },
+            {
+                "id": "iot-4",
+                "topic": "Firmware Memory Safety",
+                "prompt": "Why must a global flag shared between an ISR and the main `while(1)` loop in C be declared with the `volatile` keyword?",
+                "options": [
+                    "To allocate the variable inside external SD card storage.",
+                    "To stop the compiler from caching its value in a CPU register and skipping real memory reads.",
+                    "To automatically enable mutex locking across multiple CPU cores.",
+                    "To double the integer bit width from 16 to 32 bits.",
+                ],
+                "correctIndex": 1,
+                "explanation": "`volatile` tells the compiler the value can change asynchronously outside normal control flow, forcing fresh memory loads.",
+            },
+            {
+                "id": "iot-5",
+                "topic": "ADC Resolution & Sampling",
+                "prompt": "An ESP32 or STM32 reads an analog temperature sensor with a 12-bit ADC referenced at 3.3V. Approximately how fine is 1 LSB step?",
+                "options": [
+                    "~0.8 mV (3.3V / 4096)",
+                    "~12.9 mV (3.3V / 256)",
+                    "~330 mV (3.3V / 10)",
+                    "~3.3 V (3.3V / 1)",
+                ],
+                "correctIndex": 0,
+                "explanation": "A 12-bit ADC divides the reference range into 4096 levels, giving ~0.805 mV per count at 3.3V.",
+            },
+        ],
+    },
+    {
+        "area": "Core Software & Databases",
+        "keywords": [
+            "python", "java", "c++", "c#", "sql", "postgresql", "mysql", "sqlite",
+            "data structures", "algorithms", "oop", "git", "backend", "api", "software",
+        ],
+        "questions": [
+            {
+                "id": "core-1",
+                "topic": "SQL Indexing & Performance",
+                "prompt": "A table with 5 million rows executes `SELECT * FROM applications WHERE student_email = ?` very slowly. What is the first database optimization to inspect?",
+                "options": [
+                    "Adding an index on `student_email` and checking the query plan with `EXPLAIN`.",
+                    "Converting every column in the table to `TEXT`.",
+                    "Disabling foreign key constraints across the schema.",
+                    "Running `SELECT *` twice before rendering.",
+                ],
+                "correctIndex": 0,
+                "explanation": "Without an index, the database performs a full sequential scan; a B-tree index drops lookup cost from O(N) to O(log N).",
+            },
+            {
+                "id": "core-2",
+                "topic": "Algorithms & Complexity",
+                "prompt": "You need to check whether any pair of numbers in an unsorted list of 100,000 integers sums to a target `K`. Which approach gives O(N) average time?",
+                "options": [
+                    "Nested `for` loops comparing every pair `(i, j)`.",
+                    "A single pass storing seen values in a hash set and checking if `(K - x)` already exists.",
+                    "Bubble sort followed by linear scan from index 0.",
+                    "Recursion branching 3 ways per element without memoization.",
+                ],
+                "correctIndex": 1,
+                "explanation": "Hash-set complement lookup solves Two-Sum in O(N) average time and O(N) space instead of O(N^2).",
+            },
+            {
+                "id": "core-3",
+                "topic": "SQL Joins",
+                "prompt": "You want to list all students—including those who have 0 internship applications—along with their application count. Which join should you use?",
+                "options": [
+                    "INNER JOIN between `students` and `applications`",
+                    "LEFT JOIN from `students` to `applications` with `GROUP BY student_id`",
+                    "CROSS JOIN without any `ON` condition",
+                    "SELF JOIN on `applications` alone",
+                ],
+                "correctIndex": 1,
+                "explanation": "LEFT JOIN preserves every row from `students` even when no matching rows exist in `applications`.",
+            },
+            {
+                "id": "core-4",
+                "topic": "Git Workflows",
+                "prompt": "What is the key difference between `git fetch` and `git pull`?",
+                "options": [
+                    "`git fetch` downloads remote commits/refs safely without altering your local working branch, whereas `git pull` fetches and immediately merges/rebases.",
+                    "`git pull` deletes local untracked files automatically.",
+                    "`git fetch` pushes local branches to origin.",
+                    "They are identical aliases.",
+                ],
+                "correctIndex": 0,
+                "explanation": "`git fetch` lets you inspect upstream changes before integrating them into your current branch.",
+            },
+            {
+                "id": "core-5",
+                "topic": "API Error Handling & Retries",
+                "prompt": "An external service occasionally returns HTTP 503 (Service Unavailable). Why should client retry logic add exponential backoff rather than looping immediately?",
+                "options": [
+                    "Immediate tight-loop retries amplify traffic spikes (thundering herd) and keep the overloaded service down.",
+                    "HTTP 503 permanently deletes the endpoint if retried under 10 milliseconds.",
+                    "Backoff automatically converts 503 into 200 OK on the client without hitting the server.",
+                    "TCP sockets cannot open more than once per minute.",
+                ],
+                "correctIndex": 0,
+                "explanation": "Exponential backoff spreads retries out, giving upstream services room to recover.",
+            },
+        ],
+    },
+]
+
+
+def detect_expertise_area(
+    resume_text: str, matched_skills: list[str] | None = None
+) -> tuple[str, list[str]]:
+    skills_list = matched_skills or []
+    combined_corpus = normalize_text(f"{resume_text} {' '.join(skills_list)}")
+
+    best_area = "Core Software & Databases"
+    best_hits: list[str] = []
+    best_score = 0.0
+
+    for domain in EXPERTISE_BANK:
+        hits = [kw for kw in domain["keywords"] if skill_matches_corpus(kw, combined_corpus)]
+        specificity_bonus = 0.0 if domain["area"] == "Core Software & Databases" else 0.25
+        score = len(hits) + specificity_bonus if hits else 0.0
+        if score > best_score:
+            best_score = score
+            best_area = str(domain["area"])
+            best_hits = hits
+
+    seen: set[str] = set()
+    detected_skills: list[str] = []
+    for raw in [*skills_list, *[h.upper() for h in best_hits]]:
+        val = raw.strip()
+        if val and val.lower() not in seen:
+            seen.add(val.lower())
+            detected_skills.append(val)
+
+    return best_area, detected_skills[:6]
+
+
+def generate_expertise_quiz(
+    resume_text: str, matched_skills: list[str] | None = None
+) -> dict[str, Any]:
+    area, detected_skills = detect_expertise_area(resume_text, matched_skills)
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+
+    if api_key:
+        try:
+            from google import genai
+            from google.genai import types
+
+            client = genai.Client(api_key=api_key)
+            prompt = (
+                f'Create a practical 5-question multiple-choice technical test tailored strictly '
+                f'to this candidate\'s resume and detected expertise area: "{area}".\n'
+                f"Detected skills: {', '.join(detected_skills) or 'General technical skills'}\n"
+                f"Resume:\n{resume_text.strip()[:2200]}\n"
+                "Return JSON with keys `expertiseArea` (string) and `questions` (list of 5 objects "
+                "with `topic`, `prompt`, `options` (exactly 4 strings), `correctIndex` (0-3), `explanation`)."
+            )
+            res = client.models.generate_content(
+                model="gemini-4-hydrogen",
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                ),
+            )
+            parsed = json.loads((res.text or "{}").strip())
+            raw_qs = parsed.get("questions") or []
+            valid_qs: list[dict[str, Any]] = []
+            for idx, q in enumerate(raw_qs[:5], start=1):
+                opts = [str(o).strip() for o in (q.get("options") or [])]
+                c_idx = q.get("correctIndex")
+                if (
+                    str(q.get("prompt") or "").strip()
+                    and str(q.get("topic") or "").strip()
+                    and str(q.get("explanation") or "").strip()
+                    and len(opts) == 4
+                    and isinstance(c_idx, int)
+                    and 0 <= c_idx <= 3
+                ):
+                    valid_qs.append(
+                        {
+                            "id": f"ai-exp-{idx}",
+                            "topic": str(q["topic"]).strip(),
+                            "prompt": str(q["prompt"]).strip(),
+                            "options": opts,
+                            "correctIndex": c_idx,
+                            "explanation": str(q["explanation"]).strip(),
+                        }
+                    )
+            if len(valid_qs) == 5:
+                return {
+                    "expertiseArea": str(parsed.get("expertiseArea") or area).strip(),
+                    "detectedSkills": detected_skills,
+                    "source": "gemini",
+                    "questions": valid_qs,
+                }
+        except Exception:
+            pass
+
+    domain_cfg = next(
+        (d for d in EXPERTISE_BANK if d["area"] == area), EXPERTISE_BANK[-1]
+    )
+    return {
+        "expertiseArea": area,
+        "detectedSkills": detected_skills,
+        "source": "curated",
+        "questions": domain_cfg["questions"],
+    }
+
+
+def grade_expertise_quiz(
+    quiz: dict[str, Any], selected_answers: dict[str, int]
+) -> dict[str, Any]:
+    outcomes: list[dict[str, Any]] = []
+    for q in quiz["questions"]:
+        sel_idx = selected_answers.get(q["id"], -1)
+        is_correct = sel_idx == q["correctIndex"]
+        options = q["options"]
+        outcomes.append(
+            {
+                "id": q["id"],
+                "topic": q["topic"],
+                "prompt": q["prompt"],
+                "selectedIndex": sel_idx,
+                "correctIndex": q["correctIndex"],
+                "isCorrect": is_correct,
+                "selectedOption": options[sel_idx] if 0 <= sel_idx < len(options) else "Not answered",
+                "correctOption": options[q["correctIndex"]],
+                "explanation": q["explanation"],
+            }
+        )
+
+    correct_count = sum(1 for o in outcomes if o["isCorrect"])
+    total_count = len(quiz["questions"])
+    score_percent = round((correct_count / total_count) * 100) if total_count > 0 else 0
+
+    if score_percent >= 80:
+        band = "Strong Mastery"
+    elif score_percent >= 60:
+        band = "Competent Foundation"
+    else:
+        band = "Needs Focused Review"
+
+    strong_topics = list(dict.fromkeys(o["topic"] for o in outcomes if o["isCorrect"]))
+    weak_topics = list(dict.fromkeys(o["topic"] for o in outcomes if not o["isCorrect"]))
+
+    return {
+        "completedAt": datetime.now().strftime("%d %b %Y"),
+        "expertiseArea": quiz["expertiseArea"],
+        "correctCount": correct_count,
+        "totalCount": total_count,
+        "scorePercent": score_percent,
+        "proficiencyBand": band,
+        "strongTopics": strong_topics,
+        "weakTopics": weak_topics,
+        "outcomes": outcomes,
+    }
+
+
 def _pdf_escape(text: str) -> str:
     return text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
 
@@ -450,6 +1042,29 @@ def _build_pure_python_pdf(report: dict[str, Any]) -> bytes:
             wrapped = textwrap.wrap(role_line, width=88)
             for i, line in enumerate(wrapped):
                 entries.append(("F1", 10, 0.12, 0.16, 0.23, line if i == 0 else f"   {line}", 3 if i == 0 else 0))
+
+    exp = report.get("expertiseResult")
+    if exp:
+        entries.append(("F2", 13, 0.12, 0.25, 0.69, "Expertise Evaluation Test Summary", 14))
+        exp_summary = (
+            f"Area Tested: {sanitize_pdf_text(exp['expertiseArea'])}  |  "
+            f"Score: {exp['correctCount']}/{exp['totalCount']} "
+            f"({exp['scorePercent']}% - {sanitize_pdf_text(exp['proficiencyBand'])})"
+        )
+        for line in textwrap.wrap(exp_summary, width=88):
+            entries.append(("F1", 10, 0.12, 0.16, 0.23, line, 2))
+        if exp.get("strongTopics"):
+            for line in textwrap.wrap(
+                f"Verified Strong Topics: {sanitize_pdf_text(', '.join(exp['strongTopics']))}",
+                width=88,
+            ):
+                entries.append(("F1", 10, 0.12, 0.16, 0.23, line, 2))
+        if exp.get("weakTopics"):
+            for line in textwrap.wrap(
+                f"Topics to Review: {sanitize_pdf_text(', '.join(exp['weakTopics']))}",
+                width=88,
+            ):
+                entries.append(("F1", 10, 0.12, 0.16, 0.23, line, 2))
 
     # Paginate into PDF content streams
     pages_cmds: list[list[str]] = [[]]
@@ -598,6 +1213,35 @@ def generate_readiness_pdf(report: dict[str, Any]) -> bytes:
                 pdf.multi_cell(0, 15, role_text)
                 pdf.ln(2)
 
+        exp = report.get("expertiseResult")
+        if exp:
+            pdf.ln(8)
+            pdf.set_font("Helvetica", "B", 13)
+            pdf.set_text_color(30, 64, 175)
+            pdf.cell(0, 20, "Expertise Evaluation Test Summary", ln=1)
+            pdf.set_font("Helvetica", "", 10.5)
+            pdf.set_text_color(30, 41, 59)
+            pdf.multi_cell(
+                0,
+                15,
+                sanitize_pdf_text(
+                    f"Area Tested: {exp['expertiseArea']}  |  Score: {exp['correctCount']}/{exp['totalCount']} "
+                    f"({exp['scorePercent']}% - {exp['proficiencyBand']})"
+                ),
+            )
+            if exp.get("strongTopics"):
+                pdf.multi_cell(
+                    0,
+                    15,
+                    sanitize_pdf_text(f"Verified Strong Topics: {', '.join(exp['strongTopics'])}"),
+                )
+            if exp.get("weakTopics"):
+                pdf.multi_cell(
+                    0,
+                    15,
+                    sanitize_pdf_text(f"Topics to Review: {', '.join(exp['weakTopics'])}"),
+                )
+
         raw_out = pdf.output()
         return bytes(raw_out) if isinstance(raw_out, (bytes, bytearray)) else raw_out.encode("latin-1")
     except Exception:
@@ -642,6 +1286,110 @@ def render_readiness_report(report: dict[str, Any]) -> None:
             st.markdown("#### What to Change")
             for item in report["whatToChange"]:
                 st.markdown(f"- {item}")
+
+        exp = report.get("expertiseResult")
+        if exp:
+            st.divider()
+            st.caption(
+                f"Expertise Test ({exp['expertiseArea']}): "
+                f"{exp['correctCount']}/{exp['totalCount']} ({exp['scorePercent']}%) — "
+                f"{exp['proficiencyBand']} · Included in PDF export"
+            )
+
+
+def render_expertise_test_section(
+    resume_text: str, matched_skills: list[str]
+) -> None:
+    area, detected_skills = detect_expertise_area(resume_text, matched_skills)
+
+    with st.container(border=True):
+        head_left, head_right = st.columns([3, 1], vertical_alignment="center")
+        with head_left:
+            st.markdown(f"### Expertise Evaluation Test &nbsp; **{area}**")
+            st.caption(
+                f"Verify practical proficiency in your detected resume domain ({area}) "
+                "with a 5-question technical assessment."
+            )
+            if detected_skills:
+                st.caption(f"Focus skills: {', '.join(detected_skills)}")
+        with head_right:
+            quiz = st.session_state.expertise_quiz
+            result = st.session_state.expertise_result
+            if quiz is None and result is None:
+                if st.button("Start Expertise Test", type="primary", use_container_width=True):
+                    with st.spinner(f"Preparing {area} evaluation test..."):
+                        st.session_state.expertise_quiz = generate_expertise_quiz(
+                            resume_text, matched_skills
+                        )
+                        st.session_state.expertise_result = None
+                        st.rerun()
+            elif result is not None:
+                if st.button("Retake Test", use_container_width=True):
+                    st.session_state.expertise_result = None
+                    st.rerun()
+
+        quiz = st.session_state.expertise_quiz
+        result = st.session_state.expertise_result
+
+        if quiz is not None and result is None:
+            with st.form("expertise_quiz_form"):
+                selected_answers: dict[str, int] = {}
+                for idx, q in enumerate(quiz["questions"], start=1):
+                    st.markdown(f"**Q{idx} · {q['topic']}** — {q['prompt']}")
+                    choice = st.radio(
+                        label=f"Question {idx}",
+                        options=list(range(len(q["options"]))),
+                        format_func=lambda opt_idx, opts=q["options"]: opts[opt_idx],
+                        index=None,
+                        key=f"exp_ans_{q['id']}",
+                        label_visibility="collapsed",
+                    )
+                    if choice is not None:
+                        selected_answers[q["id"]] = int(choice)
+
+                submitted_quiz = st.form_submit_button(
+                    "Submit Assessment", type="primary"
+                )
+                if submitted_quiz:
+                    if len(selected_answers) < len(quiz["questions"]):
+                        remaining = len(quiz["questions"]) - len(selected_answers)
+                        st.error(
+                            f"Please answer all {len(quiz['questions'])} questions before submitting ({remaining} remaining)."
+                        )
+                    else:
+                        st.session_state.expertise_result = grade_expertise_quiz(
+                            quiz, selected_answers
+                        )
+                        st.rerun()
+
+        if result is not None:
+            st.success(
+                f"Score: {result['correctCount']}/{result['totalCount']} "
+                f"({result['scorePercent']}%) — {result['proficiencyBand']}"
+            )
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown("**Verified Strengths**")
+                st.caption(
+                    " · ".join(result["strongTopics"])
+                    if result["strongTopics"]
+                    else "Review the explanations below to build your core baseline."
+                )
+            with c2:
+                st.markdown("**Topics to Brush Up**")
+                st.caption(
+                    " · ".join(result["weakTopics"])
+                    if result["weakTopics"]
+                    else "None — 100% accuracy across all tested topics."
+                )
+            for idx, outcome in enumerate(result["outcomes"], start=1):
+                status = "Correct" if outcome["isCorrect"] else "Incorrect"
+                with st.expander(f"Q{idx}. {outcome['topic']} ({status})"):
+                    st.write(outcome["prompt"])
+                    if not outcome["isCorrect"]:
+                        st.error(f"Your answer: {outcome['selectedOption']}")
+                    st.success(f"Correct answer: {outcome['correctOption']}")
+                    st.caption(outcome["explanation"])
 
 
 def render_about_section() -> None:
@@ -690,6 +1438,10 @@ def main() -> None:
         st.session_state.ranking_method = ""
     if "readiness_report" not in st.session_state:
         st.session_state.readiness_report = None
+    if "expertise_quiz" not in st.session_state:
+        st.session_state.expertise_quiz = None
+    if "expertise_result" not in st.session_state:
+        st.session_state.expertise_result = None
     if "last_uploaded_key" not in st.session_state:
         st.session_state.last_uploaded_key = ""
 
@@ -715,6 +1467,8 @@ def main() -> None:
                     st.session_state.resume_text = extracted
                     st.session_state.recommendations = None
                     st.session_state.readiness_report = None
+                    st.session_state.expertise_quiz = None
+                    st.session_state.expertise_result = None
 
         resume_input = st.text_area(
             "Resume text",
@@ -738,6 +1492,8 @@ def main() -> None:
                 st.session_state.recommendations = None
                 st.session_state.ranking_method = ""
                 st.session_state.readiness_report = None
+                st.session_state.expertise_quiz = None
+                st.session_state.expertise_result = None
                 st.session_state.last_uploaded_key = ""
                 st.rerun()
 
@@ -746,11 +1502,15 @@ def main() -> None:
                 st.error("Please paste your resume or upload a PDF/TXT file first.")
                 st.session_state.recommendations = None
                 st.session_state.readiness_report = None
+                st.session_state.expertise_quiz = None
+                st.session_state.expertise_result = None
             else:
                 with st.spinner("Generating internship recommendations..."):
                     recs, method = recommend_internships(resume_input, internships)
                     st.session_state.recommendations = recs
                     st.session_state.ranking_method = method
+                    st.session_state.expertise_quiz = None
+                    st.session_state.expertise_result = None
                     st.session_state.readiness_report = (
                         build_resume_readiness_report(resume_input, recs) if recs else None
                     )
@@ -810,8 +1570,18 @@ def main() -> None:
                                 )
 
             if st.session_state.readiness_report is not None:
+                matched_pool: list[str] = []
+                for rec in recs[:8]:
+                    for s in rec["matchedSkills"]:
+                        if s not in matched_pool:
+                            matched_pool.append(s)
                 st.markdown("")
-                render_readiness_report(st.session_state.readiness_report)
+                render_expertise_test_section(st.session_state.resume_text, matched_pool[:8])
+                st.markdown("")
+                report_with_test = dict(st.session_state.readiness_report)
+                if st.session_state.expertise_result is not None:
+                    report_with_test["expertiseResult"] = st.session_state.expertise_result
+                render_readiness_report(report_with_test)
 
     render_about_section()
 

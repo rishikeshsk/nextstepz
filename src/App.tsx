@@ -1,8 +1,14 @@
 import React from 'react';
 import { FileText, Loader2, Search, Upload } from 'lucide-react';
 import snapshotData from './data/aicteSnapshot.json';
-import type { Internship, ScoredRecommendation, ScrapeMeta } from './types/internship';
+import type {
+  ExpertiseTestResult,
+  Internship,
+  ScoredRecommendation,
+  ScrapeMeta,
+} from './types/internship';
 import { buildResumeReadinessReport, recommendFromResume } from './utils/recommender';
+import { ExpertiseTestSection } from './components/ExpertiseTestSection';
 import { RecommendationCard } from './components/RecommendationCard';
 import { ResumeReadinessSection } from './components/ResumeReadinessSection';
 
@@ -33,6 +39,7 @@ export default function App() {
   // Recommendations are ONLY shown after clicking "Generate Internships"
   const [recommendations, setRecommendations] = React.useState<ScoredRecommendation[] | null>(null);
   const [generatedResumeSnapshot, setGeneratedResumeSnapshot] = React.useState<string>('');
+  const [expertiseResult, setExpertiseResult] = React.useState<ExpertiseTestResult | null>(null);
 
   const [isRecommending, setIsRecommending] = React.useState(false);
   const [isParsingPdf, setIsParsingPdf] = React.useState(false);
@@ -76,6 +83,7 @@ export default function App() {
 
       setFormError(null);
       setEmbeddingNotice(null);
+      setExpertiseResult(null);
       setGeneratedResumeSnapshot(cleaned);
       try {
         localStorage.setItem(RESUME_STORAGE_KEY, cleaned);
@@ -208,6 +216,7 @@ export default function App() {
     setResumeFileName('');
     setRecommendations(null);
     setGeneratedResumeSnapshot('');
+    setExpertiseResult(null);
     setFormError(null);
     setEmbeddingNotice(null);
     setIsRecommending(false);
@@ -224,13 +233,27 @@ export default function App() {
       ? 'Gemini Embeddings'
       : 'Local TF-IDF';
 
+  const topMatchedSkills = React.useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const rec of topRecommendations.slice(0, 8)) {
+      for (const skill of rec.matchedSkills) {
+        counts.set(skill, (counts.get(skill) ?? 0) + 1);
+      }
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([s]) => s);
+  }, [topRecommendations]);
+
   const readinessReport = React.useMemo(() => {
     if (!recommendations || recommendations.length === 0 || !generatedResumeSnapshot) return null;
-    return buildResumeReadinessReport({
+    const base = buildResumeReadinessReport({
       resumeText: generatedResumeSnapshot,
       recommendations,
     });
-  }, [recommendations, generatedResumeSnapshot]);
+    return expertiseResult ? { ...base, expertiseResult } : base;
+  }, [recommendations, generatedResumeSnapshot, expertiseResult]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
@@ -410,6 +433,15 @@ export default function App() {
                     />
                   ))}
                 </div>
+
+                {readinessReport && (
+                  <ExpertiseTestSection
+                    resumeText={generatedResumeSnapshot}
+                    matchedSkills={topMatchedSkills}
+                    result={expertiseResult}
+                    onComplete={setExpertiseResult}
+                  />
+                )}
 
                 {readinessReport && <ResumeReadinessSection report={readinessReport} />}
               </>

@@ -8,6 +8,7 @@ import {
   embedCandidateAndInternships,
   embedResumeAndInternships,
   generateAiReadinessReport,
+  generateExpertiseQuizWithGemini,
   parseResumeWithGemini,
 } from './server/aiEngine';
 import { recommendFromResume, scoreInternships } from './src/utils/recommender';
@@ -213,6 +214,27 @@ async function startServer() {
       };
       const parsed = await parseResumeWithGemini({ resumeText, fileBase64, mimeType });
       res.json(parsed);
+    } catch (err) {
+      const info = extractErrorInfo(err);
+      res.status(info.status).json({ error: info.message, code: info.code });
+    }
+  });
+
+  app.post('/api/expertise-test', async (req, res) => {
+    try {
+      const { resumeText, matchedSkills } = req.body as {
+        resumeText?: string;
+        matchedSkills?: string[];
+      };
+      if (!resumeText || !resumeText.trim()) {
+        res.status(400).json({ error: 'Resume text is required to generate an expertise test.' });
+        return;
+      }
+      const quiz = await generateExpertiseQuizWithGemini({
+        resumeText,
+        matchedSkills: Array.isArray(matchedSkills) ? matchedSkills : [],
+      });
+      res.json(quiz);
     } catch (err) {
       const info = extractErrorInfo(err);
       res.status(info.status).json({ error: info.message, code: info.code });

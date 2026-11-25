@@ -120,5 +120,46 @@ export function downloadReadinessPdf(report: ResumeReadinessReport): void {
     }
   }
 
+  // Section 4: Expertise Evaluation Test (when completed)
+  if (report.expertiseResult) {
+    const exp = report.expertiseResult;
+    ensureSpace(80);
+    y += 10;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(30, 64, 175);
+    doc.text('Expertise Evaluation Test Summary', margin, y);
+    y += 18;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10.5);
+    doc.setTextColor(30, 41, 59);
+    const expHeader = `Area Tested: ${sanitizePdfText(exp.expertiseArea)}  |  Score: ${exp.correctCount}/${exp.totalCount} (${exp.scorePercent}% - ${sanitizePdfText(exp.proficiencyBand)})`;
+    const expHeaderLines = doc.splitTextToSize(expHeader, maxWidth);
+    ensureSpace(expHeaderLines.length * 14 + 10);
+    doc.text(expHeaderLines, margin, y);
+    y += expHeaderLines.length * 14 + 6;
+
+    if (exp.strongTopics.length > 0) {
+      const strongLine = doc.splitTextToSize(
+        `Verified Strong Topics: ${sanitizePdfText(exp.strongTopics.join(', '))}`,
+        maxWidth,
+      );
+      ensureSpace(strongLine.length * 14 + 6);
+      doc.text(strongLine, margin, y);
+      y += strongLine.length * 14 + 4;
+    }
+
+    if (exp.weakTopics.length > 0) {
+      const weakLine = doc.splitTextToSize(
+        `Topics to Review: ${sanitizePdfText(exp.weakTopics.join(', '))}`,
+        maxWidth,
+      );
+      ensureSpace(weakLine.length * 14 + 6);
+      doc.text(weakLine, margin, y);
+      y += weakLine.length * 14 + 4;
+    }
+  }
+
   doc.save('nextstepz-resume-readiness-report.pdf');
 }
