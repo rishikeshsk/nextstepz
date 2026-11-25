@@ -41,23 +41,41 @@ function extractErrorInfo(err: unknown): { status: number; message: string; code
     }
   }
 
+  // Redact any API key patterns or internal secret env references
+  message = message
+    .replace(/AIza[0-9A-Za-z_-]{10,}/g, '[REDACTED]')
+    .replace(/GEMINI_API_KEY/gi, 'API credentials');
+
   if (status === 429 || code === 'RESOURCE_EXHAUSTED') {
     status = 429;
     code = 'RESOURCE_EXHAUSTED';
-    message = 'Gemini API rate limit reached. Please retry in a few seconds.';
+    message = 'AI service rate limit reached. Please retry in a few seconds.';
+  } else if (status === 401 || code === 'MISSING_API_KEY') {
+    message = 'AI service credentials are not configured or unauthorized.';
   }
 
   return { status, message, code };
 }
 
+const BLOCKED_SENSITIVE_PATH_RE =
+  /(^|\/)(\.(env|git|streamlit|devcontainer|aistudio|vscode|playwright-cli)|server(\/|$)|package(-lock)?\.json$|bun\.lock$|tsconfig\.json$|vite\.config\.ts$|.*\.py$|.*\.(pem|key|p12|pfx|crt|toml|lock)$)/i;
+
 async function startServer() {
   const app = express();
+  app.disable('x-powered-by');
   app.use(express.json({ limit: '6mb' }));
+
+  app.use((req, res, next) => {
+    if (BLOCKED_SENSITIVE_PATH_RE.test(req.path)) {
+      res.status(404).end();
+      return;
+    }
+    next();
+  });
 
   app.get('/api/health', (_req, res) => {
     res.json({
       ok: true,
-      hasGeminiKey: Boolean(process.env.GEMINI_API_KEY?.trim()),
       timestamp: new Date().toISOString(),
     });
   });
@@ -249,7 +267,7 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.resolve(__dirname, 'dist');
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, { dotfiles: 'deny' }));
     app.get('*', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });

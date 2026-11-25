@@ -4,5 +4,26 @@ dist/
 coverage/
 .DS_Store
 *.log
-.env*
+
+# Environment & Secret Files
+.env
+.env.*
 !.env.example
+.streamlit/secrets.toml
+secrets.toml
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*credentials*.json
+*secret*.json
+service-account*.json
+
+# Python & Local Artifacts
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.playwright-cli/

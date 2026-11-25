@@ -31,7 +31,7 @@ function getGeminiClient(): GoogleGenAI {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey) {
     const error = new Error(
-      'GEMINI_API_KEY is not configured in environment secrets. Please set GEMINI_API_KEY in Settings > Secrets.',
+      'AI service credentials are not configured.',
     ) as Error & { statusCode?: number; code?: string };
     error.statusCode = 400;
     error.code = 'MISSING_API_KEY';

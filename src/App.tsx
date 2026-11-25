@@ -12,16 +12,8 @@ import { ExpertiseTestSection } from './components/ExpertiseTestSection';
 import { RecommendationCard } from './components/RecommendationCard';
 import { ResumeReadinessSection } from './components/ResumeReadinessSection';
 
-const RESUME_STORAGE_KEY = 'nextstepz_resume_text_v1';
-
 export default function App() {
-  const [resumeText, setResumeText] = React.useState<string>(() => {
-    try {
-      return localStorage.getItem(RESUME_STORAGE_KEY) ?? '';
-    } catch {
-      return '';
-    }
-  });
+  const [resumeText, setResumeText] = React.useState<string>('');
   const [resumeFileName, setResumeFileName] = React.useState<string>('');
   const [internships, setInternships] = React.useState<Internship[]>(
     () => (snapshotData.items as Internship[]) ?? [],
@@ -85,11 +77,6 @@ export default function App() {
       setEmbeddingNotice(null);
       setExpertiseResult(null);
       setGeneratedResumeSnapshot(cleaned);
-      try {
-        localStorage.setItem(RESUME_STORAGE_KEY, cleaned);
-      } catch {
-        // ignore quota errors
-      }
 
       // Show immediate deterministic TF-IDF ranking while neural embeddings load
       const localRanked = recommendFromResume({
@@ -220,11 +207,6 @@ export default function App() {
     setFormError(null);
     setEmbeddingNotice(null);
     setIsRecommending(false);
-    try {
-      localStorage.removeItem(RESUME_STORAGE_KEY);
-    } catch {
-      // ignore
-    }
   };
 
   const topRecommendations = recommendations ? recommendations.slice(0, 12) : [];

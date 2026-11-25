@@ -18,6 +18,17 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 load_dotenv()
 
+
+def get_gemini_api_key() -> str:
+    env_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if env_key:
+        return env_key
+    try:
+        secret_val = st.secrets.get("GEMINI_API_KEY", "")
+        return str(secret_val).strip()
+    except Exception:
+        return ""
+
 AICTE_CATALOGUE_URL = "https://internship.aicte-india.org/api/v1/catalogue/internships"
 SNAPSHOT_PATH = Path(__file__).parent / "src" / "data" / "aicteSnapshot.json"
 
@@ -298,7 +309,7 @@ def build_internship_doc(item: dict[str, Any]) -> str:
 def compute_gemini_similarities(
     resume_text: str, internships: list[dict[str, Any]]
 ) -> list[float] | None:
-    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    api_key = get_gemini_api_key()
     if not api_key:
         return None
 
@@ -1047,7 +1058,7 @@ def generate_expertise_quiz(
     resume_text: str, matched_skills: list[str] | None = None
 ) -> dict[str, Any]:
     area, detected_skills = detect_expertise_area(resume_text, matched_skills)
-    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    api_key = get_gemini_api_key()
 
     if api_key:
         try:
@@ -1560,7 +1571,7 @@ def generate_enhanced_resume(
     expertise_result: dict[str, Any] | None,
     tone: str,
 ) -> tuple[str, str]:
-    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    api_key = get_gemini_api_key()
     if api_key:
         try:
             from google import genai
