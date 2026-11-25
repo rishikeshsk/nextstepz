@@ -1,5 +1,6 @@
 from collections import Counter
 from datetime import datetime
+import html
 import json
 import os
 from pathlib import Path
@@ -22,8 +23,178 @@ SNAPSHOT_PATH = Path(__file__).parent / "src" / "data" / "aicteSnapshot.json"
 
 st.set_page_config(
     page_title="nextstepz — AICTE Internship Recommender",
+    page_icon="🎓",
     layout="wide",
+    initial_sidebar_state="collapsed",
 )
+
+
+def inject_custom_styles() -> None:
+    st.markdown(
+        """
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+        html, body, [class*="css"] {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .stApp {
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .block-container {
+            max-width: 1240px;
+            padding-top: 1.75rem;
+            padding-bottom: 3rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+        #MainMenu, footer, header[data-testid="stHeader"] {
+            visibility: hidden;
+            height: 0;
+        }
+        .ns-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 0.9rem 1.35rem;
+            margin-bottom: 1.5rem;
+        }
+        .ns-brand-wrap {
+            display: flex;
+            align-items: baseline;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .ns-brand {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #0f172a;
+            margin: 0;
+        }
+        .ns-tagline {
+            font-size: 0.82rem;
+            color: #64748b;
+            font-weight: 400;
+        }
+        .ns-live-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: #475569;
+            white-space: nowrap;
+        }
+        .ns-section-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .ns-section-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+        .ns-section-meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #64748b;
+            white-space: nowrap;
+        }
+        .ns-card-meta {
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+        .ns-card-title {
+            font-size: 1.03rem;
+            font-weight: 600;
+            color: #0f172a;
+            line-height: 1.35;
+            margin-bottom: 0.3rem;
+        }
+        .ns-card-specs {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.76rem;
+            color: #475569;
+            margin-bottom: 0.45rem;
+        }
+        .ns-skills-row {
+            font-size: 0.8rem;
+            line-height: 1.5;
+            margin-top: 0.2rem;
+        }
+        .ns-matched-label {
+            color: #047857;
+            font-weight: 600;
+        }
+        .ns-gap-label {
+            color: #b45309;
+            font-weight: 600;
+        }
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            background-color: #ffffff;
+            border-color: #e2e8f0 !important;
+            border-radius: 10px !important;
+        }
+        div[data-testid="stButton"] > button[kind="primary"],
+        div[data-testid="stDownloadButton"] > button[kind="primary"],
+        div[data-testid="stFormSubmitButton"] > button[kind="primary"] {
+            background-color: #1e40af;
+            border-color: #1e40af;
+            color: #ffffff;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+        div[data-testid="stButton"] > button[kind="primary"]:hover,
+        div[data-testid="stDownloadButton"] > button[kind="primary"]:hover,
+        div[data-testid="stFormSubmitButton"] > button[kind="primary"]:hover {
+            background-color: #1e3a8a;
+            border-color: #1e3a8a;
+        }
+        div[data-testid="stButton"] > button,
+        div[data-testid="stDownloadButton"] > button,
+        div[data-testid="stLinkButton"] > a {
+            border-radius: 8px;
+            font-size: 0.84rem;
+            font-weight: 500;
+        }
+        textarea {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0.875rem !important;
+            line-height: 1.55 !important;
+            border-radius: 8px !important;
+        }
+        .ns-score-pill {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #0f172a;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 0.12rem 0.5rem;
+            margin-left: 0.45rem;
+        }
+        .ns-about-box {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 1.35rem 1.5rem;
+            margin-top: 1.5rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def normalize_text(text: str) -> str:
@@ -1255,13 +1426,332 @@ def read_uploaded_resume(uploaded_file: Any) -> str:
     return uploaded_file.getvalue().decode("utf-8", errors="ignore")
 
 
+def _extract_candidate_name(resume_text: str) -> str:
+    for line in resume_text.splitlines():
+        clean = line.strip()
+        if not clean:
+            continue
+        if "@" in clean or "http" in clean.lower():
+            continue
+        words = clean.split()
+        if 1 <= len(words) <= 4 and not any(ch.isdigit() for ch in clean):
+            return clean.title() if clean.isupper() else clean
+        break
+    return "Candidate Name"
+
+
+def _build_deterministic_enhanced_resume(
+    resume_text: str,
+    target_role: str,
+    candidate_name: str,
+    matched_skills: list[str],
+    missing_skills: list[str],
+    expertise_area: str,
+    expertise_result: dict[str, Any] | None,
+    tone: str,
+) -> str:
+    cleaned = resume_text.strip()
+    lines = [ln.strip() for ln in cleaned.splitlines() if ln.strip()]
+
+    contact_hits = re.findall(
+        r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|github\.com/\S+|linkedin\.com/\S+|\+?\d[\d\s-]{8,}\d",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    contact_line = " | ".join(dict.fromkeys(contact_hits)) if contact_hits else "Email: [your-email@example.com] | GitHub: [github.com/username] | LinkedIn: [linkedin.com/in/username]"
+
+    edu_lines = [
+        ln
+        for ln in lines
+        if re.search(r"\b(b\.?tech|b\.?e\.?|b\.?sc|bca|mca|m\.?tech|cgpa|gpa|university|college|institute|diploma|semester)\b", ln, flags=re.I)
+    ]
+    skill_lines = [
+        ln
+        for ln in lines
+        if re.search(r"\b(skills?|technologies|tools|stack|languages|frameworks)\b", ln, flags=re.I)
+    ]
+    project_lines = [
+        ln
+        for ln in lines
+        if re.search(r"\b(project|built|developed|deployed|designed|implemented|created|pipeline|api|app|dashboard|lab|intern)\b", ln, flags=re.I)
+        and ln not in edu_lines
+    ]
+
+    verified_list = list(dict.fromkeys(matched_skills))
+    gap_list = [s for s in dict.fromkeys(missing_skills) if s not in verified_list][:4]
+
+    summary_focus = (
+        f"Targeting {target_role} opportunities under AICTE & PM Internship Scheme."
+        if target_role
+        else f"Targeting {expertise_area} internship opportunities under AICTE & PM Internship Scheme."
+    )
+    if expertise_result:
+        summary_note = (
+            f" Verified {expertise_result['scorePercent']}% ({expertise_result['proficiencyBand']}) "
+            f"in {expertise_result['expertiseArea']}."
+        )
+    else:
+        summary_note = ""
+
+    tone_prefix = (
+        f"Detail-oriented {expertise_area} candidate focused on measurable deliverables and clean execution."
+        if tone == "Project-Impact Focused"
+        else f"Motivated {expertise_area} applicant with practical experience in {', '.join(verified_list[:4]) or expertise_area}."
+    )
+
+    sections: list[str] = [
+        candidate_name.upper(),
+        contact_line,
+        "",
+        "PROFESSIONAL SUMMARY",
+        f"{tone_prefix} {summary_focus}{summary_note}",
+        "",
+        "EDUCATION",
+    ]
+    if edu_lines:
+        for ln in edu_lines[:3]:
+            sections.append(f"- {ln}")
+    else:
+        sections.append("- [Degree & Stream, e.g., B.Tech Computer Science] | [College Name] | CGPA: [X.X/10] | [Graduation Year]")
+
+    sections.extend(["", "TECHNICAL SKILLS"])
+    if verified_list:
+        sections.append(f"- Core Matched Skills: {', '.join(verified_list)}")
+    if skill_lines:
+        for ln in skill_lines[:2]:
+            clean_ln = re.sub(r"^skills?\s*[:\-]\s*", "", ln, flags=re.I).strip()
+            if clean_ln:
+                sections.append(f"- Resume Stack: {clean_ln}")
+    if gap_list:
+        sections.append(f"- Recommended Skills to Strengthen / Add Proof For: {', '.join(gap_list)}")
+
+    sections.extend(["", "PROJECTS & HANDS-ON EXPERIENCE"])
+    if project_lines:
+        for ln in project_lines[:5]:
+            clean_proj = ln.lstrip("-•* ").strip()
+            if not re.search(r"\d+\s*(%|x|ms|s|users|records|queries|hours|days)", clean_proj, flags=re.I):
+                clean_proj = f"{clean_proj} [Add measurable outcome, e.g., latency reduced by X% / tested across N records]"
+            sections.append(f"- {clean_proj}")
+    else:
+        for ln in lines[:4]:
+            if ln not in edu_lines:
+                sections.append(f"- {ln}")
+
+    if expertise_result and expertise_result.get("strongTopics"):
+        sections.extend(
+            [
+                "",
+                "VERIFIED TECHNICAL COMPETENCIES",
+                f"- {expertise_result['expertiseArea']} Assessment ({expertise_result['scorePercent']}%): "
+                f"{', '.join(expertise_result['strongTopics'])}",
+            ]
+        )
+
+    return "\n".join(sections).strip()
+
+
+def generate_enhanced_resume(
+    resume_text: str,
+    target_role: str,
+    candidate_name: str,
+    matched_skills: list[str],
+    missing_skills: list[str],
+    expertise_area: str,
+    expertise_result: dict[str, Any] | None,
+    tone: str,
+) -> tuple[str, str]:
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if api_key:
+        try:
+            from google import genai
+
+            client = genai.Client(api_key=api_key)
+            prompt = (
+                "Rewrite and enhance this student's resume into a clean, ATS-friendly plain-text resume "
+                "for AICTE & PM Internship Scheme applications.\n"
+                f"Candidate Name: {candidate_name}\n"
+                f"Target Role: {target_role or expertise_area}\n"
+                f"Preferred Style: {tone}\n"
+                f"Verified Matched Skills to Keep Prominent: {', '.join(matched_skills) or 'N/A'}\n"
+                f"Target Role Gap Skills (only mention under 'Currently Upskilling' if not on original resume): {', '.join(missing_skills[:4]) or 'N/A'}\n"
+                + (
+                    f"Expertise Test Verified: {expertise_result['expertiseArea']} — {expertise_result['scorePercent']}% ({', '.join(expertise_result.get('strongTopics') or [])})\n"
+                    if expertise_result
+                    else ""
+                )
+                + "\nRules:\n"
+                "- NEVER fabricate fake degrees, fake companies, or fake metrics.\n"
+                "- Where measurable metrics are missing in project bullets, keep factual content and add a short bracket prompt like [quantify impact].\n"
+                "- Output clean plain text (NO markdown bold ** or # headers); use ALL-CAPS section headers (PROFESSIONAL SUMMARY, EDUCATION, TECHNICAL SKILLS, PROJECTS & EXPERIENCE) and '- ' bullets.\n\n"
+                f"Original Resume:\n{resume_text.strip()[:3500]}"
+            )
+            res = client.models.generate_content(
+                model="gemini-4-hydrogen",
+                contents=prompt,
+            )
+            ai_text = (res.text or "").strip()
+            if len(ai_text) >= 120:
+                return ai_text, "Gemini AI Enhanced"
+        except Exception:
+            pass
+
+    fallback_text = _build_deterministic_enhanced_resume(
+        resume_text=resume_text,
+        target_role=target_role,
+        candidate_name=candidate_name,
+        matched_skills=matched_skills,
+        missing_skills=missing_skills,
+        expertise_area=expertise_area,
+        expertise_result=expertise_result,
+        tone=tone,
+    )
+    return fallback_text, "Structured ATS Optimizer"
+
+
+def _build_pure_python_resume_pdf(resume_content: str) -> bytes:
+    page_w, page_h = 595, 842
+    margin_x = 48
+    top_y = page_h - 52
+    bottom_y = 52
+
+    raw_lines = resume_content.splitlines()
+    entries: list[tuple[str, int, float, float, float, str, int]] = []
+    seen_title = False
+
+    for raw_ln in raw_lines:
+        clean = sanitize_pdf_text(raw_ln)
+        if not clean:
+            entries.append(("SPACE", 0, 0, 0, 0, "", 6))
+            continue
+        if not seen_title:
+            entries.append(("F2", 16, 0.06, 0.09, 0.16, clean, 0))
+            seen_title = True
+            continue
+        if clean.isupper() and len(clean) <= 45 and not clean.startswith("-"):
+            entries.append(("F2", 11, 0.12, 0.25, 0.69, clean, 10))
+            entries.append(("RULE", 0, 0.86, 0.89, 0.94, "", 2))
+            continue
+        wrapped = textwrap.wrap(clean, width=88)
+        for idx, part in enumerate(wrapped):
+            entries.append(
+                ("F1", 10, 0.12, 0.16, 0.23, part if idx == 0 else f"  {part}", 2 if idx == 0 else 0)
+            )
+
+    pages_cmds: list[list[str]] = [[]]
+    y = top_y
+    for kind, size, r, g, b, text, gap in entries:
+        if kind == "SPACE":
+            y -= gap
+            continue
+        line_h = 8 if kind == "RULE" else int(size * 1.42)
+        if y - (gap + line_h) < bottom_y:
+            pages_cmds.append([])
+            y = top_y
+        y -= gap
+        if kind == "RULE":
+            pages_cmds[-1].append(
+                f"{r:.3f} {g:.3f} {b:.3f} RG 0.8 w {margin_x} {y} m {page_w - margin_x} {y} l S"
+            )
+            y -= 10
+        else:
+            pages_cmds[-1].append(
+                f"BT /{kind} {size} Tf {r:.3f} {g:.3f} {b:.3f} rg {margin_x} {y} Td ({_pdf_escape(text)}) Tj ET"
+            )
+            y -= line_h
+
+    objects: list[bytes] = []
+    num_pages = len(pages_cmds)
+    page_obj_ids = [5 + i * 2 for i in range(num_pages)]
+    kids_ref = " ".join(f"{pid} 0 R" for pid in page_obj_ids)
+    objects.append(b"<< /Type /Catalog /Pages 2 0 R >>")
+    objects.append(f"<< /Type /Pages /Kids [{kids_ref}] /Count {num_pages} >>".encode("latin-1"))
+    objects.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
+    objects.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>")
+
+    for i, cmds in enumerate(pages_cmds):
+        content_id = page_obj_ids[i] + 1
+        stream_bytes = "\n".join(cmds).encode("latin-1", errors="replace")
+        objects.append(
+            f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {page_w} {page_h}] "
+            f"/Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents {content_id} 0 R >>".encode("latin-1")
+        )
+        objects.append(
+            f"<< /Length {len(stream_bytes)} >>\nstream\n".encode("latin-1")
+            + stream_bytes
+            + b"\nendstream"
+        )
+
+    out = bytearray(b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
+    offsets: list[int] = [0]
+    for obj_num, obj_body in enumerate(objects, start=1):
+        offsets.append(len(out))
+        out.extend(f"{obj_num} 0 obj\n".encode("latin-1"))
+        out.extend(obj_body)
+        out.extend(b"\nendobj\n")
+
+    xref_pos = len(out)
+    out.extend(f"xref\n0 {len(objects) + 1}\n".encode("latin-1"))
+    out.extend(b"0000000000 65535 f \n")
+    for off in offsets[1:]:
+        out.extend(f"{off:010d} 00000 n \n".encode("latin-1"))
+    out.extend(
+        f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref_pos}\n%%EOF\n".encode("latin-1")
+    )
+    return bytes(out)
+
+
+def generate_enhanced_resume_pdf(resume_content: str) -> bytes:
+    try:
+        from fpdf import FPDF
+
+        pdf = FPDF(unit="pt", format="A4")
+        pdf.set_auto_page_break(auto=True, margin=48)
+        pdf.set_margins(48, 48, 48)
+        pdf.add_page()
+
+        seen_title = False
+        for raw_ln in resume_content.splitlines():
+            clean = sanitize_pdf_text(raw_ln)
+            if not clean:
+                pdf.ln(6)
+                continue
+            if not seen_title:
+                pdf.set_font("Helvetica", "B", 16)
+                pdf.set_text_color(15, 23, 42)
+                pdf.cell(0, 22, clean, ln=1)
+                seen_title = True
+                continue
+            if clean.isupper() and len(clean) <= 45 and not clean.startswith("-"):
+                pdf.ln(6)
+                pdf.set_font("Helvetica", "B", 11)
+                pdf.set_text_color(30, 64, 175)
+                pdf.cell(0, 16, clean, ln=1)
+                pdf.set_draw_color(203, 213, 225)
+                y_pos = pdf.get_y()
+                pdf.line(48, y_pos, pdf.w - 48, y_pos)
+                pdf.ln(5)
+                continue
+            pdf.set_font("Helvetica", "", 10)
+            pdf.set_text_color(30, 41, 59)
+            pdf.multi_cell(0, 14.5, clean)
+
+        raw_out = pdf.output()
+        return bytes(raw_out) if isinstance(raw_out, (bytes, bytearray)) else raw_out.encode("latin-1")
+    except Exception:
+        return _build_pure_python_resume_pdf(resume_content)
+
+
 def render_readiness_report(report: dict[str, Any]) -> None:
     with st.container(border=True):
         top_left, top_right = st.columns([3, 1], vertical_alignment="center")
         with top_left:
             st.markdown(
-                f"### Resume Readiness Report &nbsp; `{report['readinessScore']}/100` &nbsp; "
-                f"**{report['readinessTier']}**"
+                f"<div style='display:flex;align-items:baseline;flex-wrap:wrap;gap:0.5rem;'>"
+                f"<h3 style='margin:0;font-size:1.15rem;'>Resume Readiness Report</h3>"
+                f"<span class='ns-score-pill'>{report['readinessScore']}/100</span>"
+                f"<span style='font-size:0.82rem;font-weight:600;color:#1e40af;'>{report['readinessTier']}</span>"
+                f"</div>",
+                unsafe_allow_html=True,
             )
             st.write(report["summary"])
         with top_right:
@@ -1296,6 +1786,93 @@ def render_readiness_report(report: dict[str, Any]) -> None:
             )
 
 
+def render_enhanced_resume_section(
+    resume_text: str,
+    matched_skills: list[str],
+    missing_skills: list[str],
+    top_role_title: str,
+    expertise_area: str,
+    expertise_result: dict[str, Any] | None,
+) -> None:
+    with st.container(border=True):
+        st.markdown(
+            "<h3 style='margin:0;font-size:1.15rem;'>Enhanced Resume Generator</h3>",
+            unsafe_allow_html=True,
+        )
+        st.caption(
+            "Build a polished, ATS-ready version of your resume tailored to your target AICTE roles and verified strengths."
+        )
+
+        default_name = _extract_candidate_name(resume_text)
+        c1, c2, c3 = st.columns([2, 2, 2], gap="medium")
+        with c1:
+            candidate_name = st.text_input(
+                "Candidate Name",
+                value=default_name,
+                key="enh_candidate_name",
+            )
+        with c2:
+            target_role = st.text_input(
+                "Target Internship Role",
+                value=top_role_title,
+                key="enh_target_role",
+            )
+        with c3:
+            tone = st.selectbox(
+                "Resume Style",
+                options=["ATS Concise Technical", "Project-Impact Focused"],
+                key="enh_resume_tone",
+            )
+
+        if st.button("Generate Enhanced Resume", type="primary"):
+            with st.spinner("Crafting your enhanced resume..."):
+                enhanced_text, enh_source = generate_enhanced_resume(
+                    resume_text=resume_text,
+                    target_role=target_role.strip(),
+                    candidate_name=candidate_name.strip() or "Candidate Name",
+                    matched_skills=matched_skills,
+                    missing_skills=missing_skills,
+                    expertise_area=expertise_area,
+                    expertise_result=expertise_result,
+                    tone=tone,
+                )
+                st.session_state.enhanced_resume_text = enhanced_text
+                st.session_state.enhanced_resume_source = enh_source
+
+        if st.session_state.enhanced_resume_text:
+            st.caption(f"Mode: {st.session_state.enhanced_resume_source}")
+            edited_enhanced = st.text_area(
+                "Enhanced Resume Preview (editable)",
+                value=st.session_state.enhanced_resume_text,
+                height=320,
+                key="enh_resume_preview_area",
+            )
+            st.session_state.enhanced_resume_text = edited_enhanced
+
+            dl_pdf_col, dl_txt_col, apply_col = st.columns([2, 2, 2], gap="medium")
+            with dl_pdf_col:
+                st.download_button(
+                    label="Download Resume PDF",
+                    data=generate_enhanced_resume_pdf(edited_enhanced),
+                    file_name="nextstepz-enhanced-resume.pdf",
+                    mime="application/pdf",
+                    type="primary",
+                    use_container_width=True,
+                )
+            with dl_txt_col:
+                st.download_button(
+                    label="Download Resume (.txt)",
+                    data=edited_enhanced.encode("utf-8"),
+                    file_name="nextstepz-enhanced-resume.txt",
+                    mime="text/plain",
+                    use_container_width=True,
+                )
+            with apply_col:
+                if st.button("Use as Current Resume", use_container_width=True):
+                    st.session_state.resume_text = edited_enhanced
+                    st.rerun()
+
+
 def render_expertise_test_section(
     resume_text: str, matched_skills: list[str]
 ) -> None:
@@ -1304,7 +1881,13 @@ def render_expertise_test_section(
     with st.container(border=True):
         head_left, head_right = st.columns([3, 1], vertical_alignment="center")
         with head_left:
-            st.markdown(f"### Expertise Evaluation Test &nbsp; **{area}**")
+            st.markdown(
+                f"<div style='display:flex;align-items:baseline;flex-wrap:wrap;gap:0.5rem;'>"
+                f"<h3 style='margin:0;font-size:1.15rem;'>Expertise Evaluation Test</h3>"
+                f"<span style='font-size:0.82rem;font-weight:600;color:#1e40af;'>{area}</span>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
             st.caption(
                 f"Verify practical proficiency in your detected resume domain ({area}) "
                 "with a 5-question technical assessment."
@@ -1366,7 +1949,7 @@ def render_expertise_test_section(
                 f"Score: {result['correctCount']}/{result['totalCount']} "
                 f"({result['scorePercent']}%) — {result['proficiencyBand']}"
             )
-            c1, c2 = st.columns(2)
+            c1, c2 = st.columns(2, gap="medium")
             with c1:
                 st.markdown("**Verified Strengths**")
                 st.caption(
@@ -1392,7 +1975,7 @@ def render_expertise_test_section(
 
 
 def render_about_section() -> None:
-    st.divider()
+    st.markdown("<div class='ns-about-box'>", unsafe_allow_html=True)
     col_intro, col_matching, col_readiness = st.columns([1, 1, 1], gap="large")
     with col_intro:
         st.markdown("#### About this website")
@@ -1407,27 +1990,31 @@ def render_about_section() -> None:
             "embeddings and skill-overlap scoring to surface your strongest matches."
         )
     with col_readiness:
-        st.markdown("**Actionable Resume Readiness**")
+        st.markdown("**Readiness, Assessment & Resume Builder**")
         st.caption(
-            "Alongside your ranked internship matches, nextstepz evaluates your resume against "
-            "live role requirements—highlighting what strengths to keep, which missing skills or "
-            "sections to update, and letting you download the full report as a PDF."
+            "Alongside your ranked internship matches, nextstepz tests your domain expertise, "
+            "highlights what to keep or improve in a downloadable PDF Readiness Report, and generates "
+            "an ATS-ready enhanced resume."
         )
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def main() -> None:
+    inject_custom_styles()
     internships, total_on_portal, _ = fetch_aicte_internships()
 
-    header_left, header_right = st.columns([3, 2])
-    with header_left:
-        st.markdown("## nextstepz")
-    with header_right:
-        st.markdown(
-            f"<p style='text-align:right;color:#64748b;padding-top:14px;'>"
-            f"{len(internships)} of {total_on_portal:,} live AICTE internships</p>",
-            unsafe_allow_html=True,
-        )
-    st.divider()
+    st.markdown(
+        f"""
+        <div class="ns-topbar">
+            <div class="ns-brand-wrap">
+                <h1 class="ns-brand">nextstepz</h1>
+                <span class="ns-tagline">AICTE &amp; PM Internship Scheme Recommender</span>
+            </div>
+            <div class="ns-live-count">{len(internships)} of {total_on_portal:,} live AICTE internships</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     if "resume_text" not in st.session_state:
         st.session_state.resume_text = ""
@@ -1441,120 +2028,159 @@ def main() -> None:
         st.session_state.expertise_quiz = None
     if "expertise_result" not in st.session_state:
         st.session_state.expertise_result = None
+    if "enhanced_resume_text" not in st.session_state:
+        st.session_state.enhanced_resume_text = ""
+    if "enhanced_resume_source" not in st.session_state:
+        st.session_state.enhanced_resume_source = ""
     if "last_uploaded_key" not in st.session_state:
         st.session_state.last_uploaded_key = ""
 
     left_col, right_col = st.columns([5, 7], gap="large")
 
     with left_col:
-        st.subheader("Add Your Resume")
-        st.caption(
-            "Paste your resume or upload a PDF/TXT file, then click Generate Internships."
-        )
+        with st.container(border=True):
+            st.markdown(
+                "<div class='ns-section-header'>"
+                "<h2 class='ns-section-title'>Add Your Resume</h2>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
+            st.caption(
+                "Paste your resume or upload a PDF/TXT file, then click Generate Internships."
+            )
 
-        uploaded = st.file_uploader(
-            "Upload PDF or TXT resume",
-            type=["pdf", "txt", "md"],
-            label_visibility="collapsed",
-        )
-        if uploaded is not None:
-            upload_key = f"{uploaded.name}:{uploaded.size}"
-            if upload_key != st.session_state.last_uploaded_key:
-                extracted = read_uploaded_resume(uploaded)
-                st.session_state.last_uploaded_key = upload_key
-                if extracted:
-                    st.session_state.resume_text = extracted
+            uploaded = st.file_uploader(
+                "Upload PDF or TXT resume",
+                type=["pdf", "txt", "md"],
+                label_visibility="collapsed",
+            )
+            if uploaded is not None:
+                upload_key = f"{uploaded.name}:{uploaded.size}"
+                if upload_key != st.session_state.last_uploaded_key:
+                    extracted = read_uploaded_resume(uploaded)
+                    st.session_state.last_uploaded_key = upload_key
+                    if extracted:
+                        st.session_state.resume_text = extracted
+                        st.session_state.recommendations = None
+                        st.session_state.readiness_report = None
+                        st.session_state.expertise_quiz = None
+                        st.session_state.expertise_result = None
+                        st.session_state.enhanced_resume_text = ""
+
+            resume_input = st.text_area(
+                "Resume text",
+                value=st.session_state.resume_text,
+                height=340,
+                placeholder="Paste your resume here (Education, Technical Skills, Projects, Experience)...",
+                label_visibility="collapsed",
+            )
+            st.session_state.resume_text = resume_input
+            st.caption(f"{len(resume_input.strip())} chars")
+
+            btn_col, clear_col = st.columns([3, 1], gap="small")
+            with btn_col:
+                submitted = st.button(
+                    "Generate Internships",
+                    type="primary",
+                    use_container_width=True,
+                )
+            with clear_col:
+                if st.button("Clear", use_container_width=True):
+                    st.session_state.resume_text = ""
+                    st.session_state.recommendations = None
+                    st.session_state.ranking_method = ""
+                    st.session_state.readiness_report = None
+                    st.session_state.expertise_quiz = None
+                    st.session_state.expertise_result = None
+                    st.session_state.enhanced_resume_text = ""
+                    st.session_state.enhanced_resume_source = ""
+                    st.session_state.last_uploaded_key = ""
+                    st.rerun()
+
+            if submitted:
+                if not resume_input.strip():
+                    st.error("Please paste your resume or upload a PDF/TXT file first.")
                     st.session_state.recommendations = None
                     st.session_state.readiness_report = None
                     st.session_state.expertise_quiz = None
                     st.session_state.expertise_result = None
-
-        resume_input = st.text_area(
-            "Resume text",
-            value=st.session_state.resume_text,
-            height=340,
-            placeholder="Paste your resume here (Education, Technical Skills, Projects, Experience)...",
-            label_visibility="collapsed",
-        )
-        st.session_state.resume_text = resume_input
-
-        btn_col, clear_col = st.columns([3, 1])
-        with btn_col:
-            submitted = st.button(
-                "Generate Internships",
-                type="primary",
-                use_container_width=True,
-            )
-        with clear_col:
-            if st.button("Clear", use_container_width=True):
-                st.session_state.resume_text = ""
-                st.session_state.recommendations = None
-                st.session_state.ranking_method = ""
-                st.session_state.readiness_report = None
-                st.session_state.expertise_quiz = None
-                st.session_state.expertise_result = None
-                st.session_state.last_uploaded_key = ""
-                st.rerun()
-
-        if submitted:
-            if not resume_input.strip():
-                st.error("Please paste your resume or upload a PDF/TXT file first.")
-                st.session_state.recommendations = None
-                st.session_state.readiness_report = None
-                st.session_state.expertise_quiz = None
-                st.session_state.expertise_result = None
-            else:
-                with st.spinner("Generating internship recommendations..."):
-                    recs, method = recommend_internships(resume_input, internships)
-                    st.session_state.recommendations = recs
-                    st.session_state.ranking_method = method
-                    st.session_state.expertise_quiz = None
-                    st.session_state.expertise_result = None
-                    st.session_state.readiness_report = (
-                        build_resume_readiness_report(resume_input, recs) if recs else None
-                    )
+                    st.session_state.enhanced_resume_text = ""
+                else:
+                    with st.spinner("Generating internship recommendations..."):
+                        recs, method = recommend_internships(resume_input, internships)
+                        st.session_state.recommendations = recs
+                        st.session_state.ranking_method = method
+                        st.session_state.expertise_quiz = None
+                        st.session_state.expertise_result = None
+                        st.session_state.enhanced_resume_text = ""
+                        st.session_state.readiness_report = (
+                            build_resume_readiness_report(resume_input, recs) if recs else None
+                        )
 
     with right_col:
-        st.subheader("Recommended Internships")
         recs = st.session_state.recommendations
+        meta_text = (
+            f"Top {len(recs)} of {len(internships)} AICTE listings · {st.session_state.ranking_method}"
+            if recs
+            else ""
+        )
+        st.markdown(
+            f"<div class='ns-section-header'>"
+            f"<h2 class='ns-section-title'>Recommended Internships</h2>"
+            f"<span class='ns-section-meta'>{meta_text}</span>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
         if recs is None:
-            st.info(
-                "Your recommended internships will appear here. Add your resume on the left and click Generate Internships."
-            )
+            with st.container(border=True):
+                st.markdown("**Your recommended internships will appear here**")
+                st.caption(
+                    "Add your resume on the left and click Generate Internships to view matching "
+                    "AICTE portal openings, take an expertise evaluation test, download your "
+                    "Readiness Report PDF, and generate an enhanced resume."
+                )
         elif not recs:
             st.warning(
                 "No matching internships found. Try adding more skills or project details to your resume."
             )
         else:
-            st.caption(
-                f"Top {len(recs)} of {len(internships)} AICTE listings · {st.session_state.ranking_method}"
-            )
             for idx, rec in enumerate(recs, start=1):
                 item = rec["internship"]
                 with st.container(border=True):
-                    top_a, top_b = st.columns([4, 1])
+                    top_a, top_b = st.columns([5, 1], vertical_alignment="top")
                     with top_a:
                         verified_label = (
                             "AICTE Verified" if item["verified"] else "Partner Listing"
                         )
-                        st.caption(
-                            f"#{idx:02d} · {item['organization']} · {item['category']} · {verified_label}"
-                        )
-                        st.markdown(f"**{item['title']}**")
-                        st.caption(
-                            f"{item['mode']} · {item['location']} · {item['duration']} · "
-                            f"{item['stipendDisplay']} · {item['daysLeft']}d left"
+                        st.markdown(
+                            f"<div class='ns-card-meta'>#{idx:02d} · {html.escape(str(item['organization']))} · "
+                            f"{html.escape(str(item['category']))} · {verified_label}</div>"
+                            f"<div class='ns-card-title'>{html.escape(str(item['title']))}</div>"
+                            f"<div class='ns-card-specs'>{html.escape(str(item['mode']))} · {html.escape(str(item['location']))} · "
+                            f"{html.escape(str(item['duration']))} · {html.escape(str(item['stipendDisplay']))} · {item['daysLeft']}d left</div>",
+                            unsafe_allow_html=True,
                         )
                     with top_b:
                         if item["portalUrl"]:
                             st.link_button("Apply", item["portalUrl"], use_container_width=True)
 
+                    skills_parts: list[str] = []
                     if rec["matchedSkills"]:
-                        st.markdown(
-                            f"**Matched:** {', '.join(rec['matchedSkills'][:5])}"
+                        matched_escaped = ", ".join(html.escape(str(s)) for s in rec["matchedSkills"][:5])
+                        skills_parts.append(
+                            f"<span class='ns-matched-label'>Matched:</span> {matched_escaped}"
                         )
                     if rec["missingSkills"]:
-                        st.caption(f"Gap: {', '.join(rec['missingSkills'][:3])}")
+                        gap_escaped = ", ".join(html.escape(str(s)) for s in rec["missingSkills"][:3])
+                        skills_parts.append(
+                            f"<span class='ns-gap-label'>Gap:</span> {gap_escaped}"
+                        )
+                    if skills_parts:
+                        st.markdown(
+                            f"<div class='ns-skills-row'>{' &nbsp;&nbsp; '.join(skills_parts)}</div>",
+                            unsafe_allow_html=True,
+                        )
 
                     if item["description"] or item["skills"]:
                         with st.expander("View details"):
@@ -1569,10 +2195,16 @@ def main() -> None:
 
             if st.session_state.readiness_report is not None:
                 matched_pool: list[str] = []
+                missing_pool: list[str] = []
                 for rec in recs[:8]:
                     for s in rec["matchedSkills"]:
                         if s not in matched_pool:
                             matched_pool.append(s)
+                    for g in rec["missingSkills"]:
+                        if g not in missing_pool:
+                            missing_pool.append(g)
+
+                area, _ = detect_expertise_area(st.session_state.resume_text, matched_pool[:8])
                 st.markdown("")
                 render_expertise_test_section(st.session_state.resume_text, matched_pool[:8])
                 st.markdown("")
@@ -1580,6 +2212,15 @@ def main() -> None:
                 if st.session_state.expertise_result is not None:
                     report_with_test["expertiseResult"] = st.session_state.expertise_result
                 render_readiness_report(report_with_test)
+                st.markdown("")
+                render_enhanced_resume_section(
+                    resume_text=st.session_state.resume_text,
+                    matched_skills=matched_pool[:8],
+                    missing_skills=missing_pool[:6],
+                    top_role_title=recs[0]["internship"]["title"],
+                    expertise_area=area,
+                    expertise_result=st.session_state.expertise_result,
+                )
 
     render_about_section()
 
